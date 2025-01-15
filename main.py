@@ -85,7 +85,7 @@ def color(*args: str | ColorFun, escape = True, sep = " ") -> str:
         elif isinstance(arg, Callable):
             ret += arg(escape = False)
         else:
-            assert(False, f"Invalid argument \"{arg}\"")
+            assert False, f"Invalid argument \"{arg}\""
     if ret.endswith(sep):
         ret = ret.removesuffix(sep)
     if escape:
@@ -94,12 +94,19 @@ def color(*args: str | ColorFun, escape = True, sep = " ") -> str:
 
 def highlight(text: str, what: str, count = -1, *, colors: list[ColorFun]) -> str:
     replacement = "".join([c(escape = False) for c in colors]) + what + reset("")
-    print(replacement)
     return text.replace(what, replacement, count)
 
 def highlight_range(text: str, start: int, end: int, *, colors: list[ColorFun]) -> str:
-    assert(start < end, "Starting index needs to be greater than the ending index")
+    """
+    Returns `text` if `start >= end`. Throws an `AssertionError` if indexes are out of bounds
+    """
+    if start >= end:
+        return text
+    assert start >=0 and start < len(text), f"Out of bounds start={start}"
+    assert end >=0 and end < len(text), f"Out of bounds end={end}"
     return text[:start] \
         + "".join([c(escape = False) for c in colors]) \
         + text[start:end] \
         + reset() + text[end:]
+
+print(highlight_range("asdsda", 9, 10, colors=[red]))
