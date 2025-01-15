@@ -77,6 +77,49 @@ def bg_gray(text = "", *, escape = True) -> str:
 def bg_default(text = "", *, escape = True) -> str:
     return f"\033[49m{text}\033[0m" if escape else f"\033[49m{text}"
 
+def b_red(text = "", *, escape = True) -> str:
+    return f"\033[91m{text}\033[0m" if escape else f"\033[91m{text}"
+
+def b_green(text = "", *, escape = True) -> str:
+    return f"\033[92m{text}\033[0m" if escape else f"\033[92m{text}"
+
+def b_yellow(text = "", *, escape = True) -> str:
+    return f"\033[93m{text}\033[0m" if escape else f"\033[93m{text}"
+
+def b_blue(text = "", *, escape = True) -> str:
+    return f"\033[94m{text}\033[0m" if escape else f"\033[94m{text}"
+
+def b_magenta(text = "", *, escape = True) -> str:
+    return f"\033[95m{text}\033[0m" if escape else f"\033[95m{text}"
+
+def b_cyan(text = "", *, escape = True) -> str:
+    return f"\033[96m{text}\033[0m" if escape else f"\033[96m{text}"
+
+def b_white(text = "", *, escape = True) -> str:
+    return f"\033[97m{text}\033[0m" if escape else f"\033[97m{text}"
+
+def bg_b_red(text = "", *, escape = True) -> str:
+    return f"\033[101m{text}\033[0m" if escape else f"\033[101m{text}"
+
+def bg_b_green(text = "", *, escape = True) -> str:
+    return f"\033[102m{text}\033[0m" if escape else f"\033[102m{text}"
+
+def bg_b_yellow(text = "", *, escape = True) -> str:
+    return f"\033[103m{text}\033[0m" if escape else f"\033[103m{text}"
+
+def bg_b_blue(text = "", *, escape = True) -> str:
+    return f"\033[104m{text}\033[0m" if escape else f"\033[104m{text}"
+
+def bg_b_magenta(text = "", *, escape = True) -> str:
+    return f"\033[105m{text}\033[0m" if escape else f"\033[105m{text}"
+
+def bg_b_cyan(text = "", *, escape = True) -> str:
+    return f"\033[106m{text}\033[0m" if escape else f"\033[106m{text}"
+
+def bg_b_white(text = "", *, escape = True) -> str:
+    return f"\033[107m{text}\033[0m" if escape else f"\033[107m{text}"
+
+
 def color(*args: any | ColorFun, escape = True, sep = " ") -> str:
     ret = ""
     for arg in args:
@@ -111,4 +154,4 @@ def highlight_range(text: str, start: int, end: int, *, colors: list[ColorFun], 
         + reset() + hl2 + text[end:] + reset()
 
 # print(highlight("Hello World", "l", colors=[red], colors2=[bg_white]))
-print(highlight_range("Hello World", 2, 7, colors=[green], colors2=[bg_blue]))
+print(highlight_range("Hello World", 2, 7, colors=[b_green], colors2=[bg_blue]))
