@@ -16,7 +16,7 @@ print(green("Hello"), yellow("World"))
 from console_color import color, underline, cyan, bg_red
 print(color(underline, cyan, "Hello", bg_red, "World"))
 ```
-
+$${\red{123}}$$
  <code>He<code style="background-color: green; font-style: italic">ll</code>o Wor<code style="background-color: green; font-style: italic">l</code>d</code></code>
 
 ```python
