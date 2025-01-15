@@ -90,21 +90,25 @@ def color(*args: any | ColorFun, escape = True, sep = " ") -> str:
         ret += reset()
     return ret
 
-def highlight(text: str, what: str, count = -1, *, colors: list[ColorFun]) -> str:
-    replacement = "".join([c(escape = False) for c in colors]) + what + reset("")
-    return text.replace(what, replacement, count)
+def highlight(text: str, what: str, count = -1, *, colors: list[ColorFun], colors2: list[ColorFun]) -> str:
+    hl2 = "".join([c(escape = False) for c in colors2])
+    replacement = reset() + "".join([c(escape = False) for c in colors]) \
+        + what + reset() + hl2
+    return hl2 + text.replace(what, replacement, count) + reset()
 
-def highlight_range(text: str, start: int, end: int, *, colors: list[ColorFun]) -> str:
+def highlight_range(text: str, start: int, end: int, *, colors: list[ColorFun], colors2: list[ColorFun]) -> str:
     """
     Returns `text` if `start >= end`. Throws an `AssertionError` if indexes are out of bounds
     """
     if start >= end:
         return text
-    assert start >=0 and start < len(text), f"Out of bounds start={start}"
-    assert end >=0 and end < len(text), f"Out of bounds end={end}"
-    return text[:start] \
+    assert start >= 0 and start < len(text), f"Out of bounds start={start}"
+    assert end >= 0 and end < len(text), f"Out of bounds end={end}"
+    hl2 = "".join([c(escape = False) for c in colors2])
+    return hl2 + text[:start] + reset() \
         + "".join([c(escape = False) for c in colors]) \
         + text[start:end] \
-        + reset() + text[end:]
+        + reset() + hl2 + text[end:] + reset()
 
-print(color("H", red, "ELLO", 123))
+# print(highlight("Hello World", "l", colors=[red], colors2=[bg_white]))
+print(highlight_range("Hello World", 2, 7, colors=[green], colors2=[bg_blue]))
