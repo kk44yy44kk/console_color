@@ -30,3 +30,5 @@ print(highlight("Hello World", "l", colors=[bg_green, italic]))
 from console_color import highlight_range, cyan, underline
 print(highlight_range("Hello World", 3, 8, colors=[cyan, underline]))
 ```
+
+![Screenshot](README.png)
