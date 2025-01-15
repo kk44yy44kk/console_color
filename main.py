@@ -153,5 +153,15 @@ def highlight_range(text: str, start: int, end: int, *, colors: list[ColorFun], 
         + text[start:end] \
         + reset() + hl2 + text[end:] + reset()
 
+def uncolor(text: str) -> str:
+    ret = ""
+    last = 0
+    while last < len(text):
+        start = text.find("\033", last)
+        ret += text[last:start]
+        last = text.find("m", start) + 1
+    return ret
+
+
 # print(highlight("Hello World", "l", colors=[red], colors2=[bg_white]))
-print(highlight_range("Hello World", 2, 7, colors=[b_green], colors2=[bg_blue]))
+# print(uncolor(highlight_range("Hello World", 2, 7, colors=[b_green], colors2=[bg_blue])))
