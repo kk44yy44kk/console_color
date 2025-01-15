@@ -77,15 +77,13 @@ def bg_gray(text = "", *, escape = True) -> str:
 def bg_default(text = "", *, escape = True) -> str:
     return f"\033[49m{text}\033[0m" if escape else f"\033[49m{text}"
 
-def color(*args: str | ColorFun, escape = True, sep = " ") -> str:
+def color(*args: any | ColorFun, escape = True, sep = " ") -> str:
     ret = ""
     for arg in args:
-        if isinstance(arg, str):
-            ret += arg + sep
-        elif isinstance(arg, Callable):
+        if isinstance(arg, Callable):
             ret += arg(escape = False)
         else:
-            assert False, f"Invalid argument \"{arg}\""
+            ret += str(arg) + sep
     if ret.endswith(sep):
         ret = ret.removesuffix(sep)
     if escape:
@@ -109,4 +107,4 @@ def highlight_range(text: str, start: int, end: int, *, colors: list[ColorFun]) 
         + text[start:end] \
         + reset() + text[end:]
 
-print(highlight_range("asdsda", 9, 10, colors=[red]))
+print(color("H", red, "ELLO", 123))
