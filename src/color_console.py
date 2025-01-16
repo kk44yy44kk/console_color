@@ -1,4 +1,5 @@
 from typing import Callable
+from math import floor
 
 ColorFun = Callable[[str], str]
 
@@ -26,7 +27,7 @@ def red(text = "", *, escape = True) -> str:
 def green(text = "", *, escape = True) -> str:
     return f"\033[32m{text}\033[0m" if escape else f"\033[32m{text}"
 
-def yellow(text: str, *, escape = True):
+def yellow(text = "", *, escape = True):
     return f"\033[33m{text}\033[0m" if escape else f"\033[33m{text}"
 
 def blue(text = "", *, escape = True) -> str:
@@ -133,13 +134,13 @@ def color(*args: any | ColorFun, escape = True, sep = " ") -> str:
         ret += reset()
     return ret
 
-def highlight(text: str, what: str, count = -1, *, colors: list[ColorFun], colors2: list[ColorFun]) -> str:
+def highlight(text: str, what: str, count = -1, *, colors: list[ColorFun], colors2: list[ColorFun] = []) -> str:
     hl2 = "".join([c(escape = False) for c in colors2])
     replacement = reset() + "".join([c(escape = False) for c in colors]) \
         + what + reset() + hl2
     return hl2 + text.replace(what, replacement, count) + reset()
 
-def highlight_range(text: str, start: int, end: int, *, colors: list[ColorFun], colors2: list[ColorFun]) -> str:
+def highlight_range(text: str, start: int, end: int, *, colors: list[ColorFun], colors2: list[ColorFun] = []) -> str:
     """
     Returns `text` if `start >= end`. Throws an `AssertionError` if indexes are out of bounds
     """
@@ -162,6 +163,10 @@ def uncolor(text: str) -> str:
         last = text.find("m", start) + 1
     return ret
 
+def progress_bar(value: float, width: int, *, colors: list[ColorFun] = [green], colors2: list[ColorFun] = [white], char = "#", char2 = ".") -> str:
+    clr = "".join([c(escape = False) for c in colors])
+    clr2 = "".join([c(escape = False) for c in colors2])
+    return f"\033[A{clr}{char * floor(0.5 + value * width)}\033[0m{clr2}{char2 * floor(0.5 + (1.0 - value) * width)}\033[0m"
 
 # print(highlight("Hello World", "l", colors=[red], colors2=[bg_white]))
 # print(uncolor(highlight_range("Hello World", 2, 7, colors=[b_green], colors2=[bg_blue])))
