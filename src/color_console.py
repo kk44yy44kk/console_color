@@ -4,123 +4,50 @@ from math import floor, ceil
 ColorFun = Callable[[str], str]
 RGB = tuple[int, int, int]
 
-def reset(text = "", *, escape = True) -> str:
-    return f"\033[0m{text}"
+def make_color(code: int):
+    def ret(text = "", *, escape = True) -> str:
+        return f"\033[{code}m{text}\033[0m" if escape else f"\033[{code}m{text}"
+    return ret
 
-def bold(text = "", *, escape = True) -> str:
-    return f"\033[1m{text}\033[0m" if escape else f"\033[1m{text}"
-
-def italic(text = "", *, escape = True) -> str:
-    return f"\033[3m{text}\033[0m" if escape else f"\033[3m{text}"
-
-def underline(text = "", *, escape = True) -> str:
-    return f"\033[4m{text}\033[0m" if escape else f"\033[4m{text}"
-
-def hide(text = "", *, escape = True) -> str:
-    return f"\033[8m{text}\033[0m" if escape else f"\033[8m{text}"
-
-def black(text = "", *, escape = True) -> str:
-    return f"\033[30m{text}\033[0m" if escape else f"\033[30m{text}"
-
-def red(text = "", *, escape = True) -> str:
-    return f"\033[31m{text}\033[0m" if escape else f"\033[31m{text}"
-
-def green(text = "", *, escape = True) -> str:
-    return f"\033[32m{text}\033[0m" if escape else f"\033[32m{text}"
-
-def yellow(text = "", *, escape = True):
-    return f"\033[33m{text}\033[0m" if escape else f"\033[33m{text}"
-
-def blue(text = "", *, escape = True) -> str:
-    return f"\033[34m{text}\033[0m" if escape else f"\033[34m{text}"
-
-def magenta(text = "", *, escape = True) -> str:
-    return f"\033[35m{text}\033[0m" if escape else f"\033[35m{text}"
-
-def cyan(text = "", *, escape = True) -> str:
-    return f"\033[36m{text}\033[0m" if escape else f"\033[36m{text}"
-
-def white(text = "", *, escape = True) -> str:
-    return f"\033[37m{text}\033[0m" if escape else f"\033[37m{text}"
-
-def gray(text = "", *, escape = True) -> str:
-    return f"\033[90m{text}\033[0m" if escape else f"\033[90m{text}"
-
-def default(text = "", *, escape = True) -> str:
-    return f"\033[39m{text}\033[0m" if escape else f"\033[39m{text}"
-
-def bg_black(text = "", *, escape = True) -> str:
-    return f"\033[40m{text}\033[0m" if escape else f"\033[40m{text}"
-
-def bg_red(text = "", *, escape = True) -> str:
-    return f"\033[41m{text}\033[0m" if escape else f"\033[41m{text}"
-
-def bg_green(text = "", *, escape = True) -> str:
-    return f"\033[42m{text}\033[0m" if escape else f"\033[42m{text}"
-
-def bg_yellow(text = "", *, escape = True) -> str:
-    return f"\033[43m{text}\033[0m" if escape else f"\033[43m{text}"
-
-def bg_blue(text = "", *, escape = True) -> str:
-    return f"\033[44m{text}\033[0m" if escape else f"\033[44m{text}"
-
-def bg_magenta(text = "", *, escape = True) -> str:
-    return f"\033[45m{text}\033[0m" if escape else f"\033[45m{text}"
-
-def bg_cyan(text = "", *, escape = True) -> str:
-    return f"\033[46m{text}\033[0m" if escape else f"\033[46m{text}"
-
-def bg_white(text = "", *, escape = True) -> str:
-    return f"\033[47m{text}\033[0m" if escape else f"\033[47m{text}"
-
-def bg_gray(text = "", *, escape = True) -> str:
-    return f"\033[100m{text}\033[0m" if escape else f"\033[100m{text}"
-
-def bg_default(text = "", *, escape = True) -> str:
-    return f"\033[49m{text}\033[0m" if escape else f"\033[49m{text}"
-
-def b_red(text = "", *, escape = True) -> str:
-    return f"\033[91m{text}\033[0m" if escape else f"\033[91m{text}"
-
-def b_green(text = "", *, escape = True) -> str:
-    return f"\033[92m{text}\033[0m" if escape else f"\033[92m{text}"
-
-def b_yellow(text = "", *, escape = True) -> str:
-    return f"\033[93m{text}\033[0m" if escape else f"\033[93m{text}"
-
-def b_blue(text = "", *, escape = True) -> str:
-    return f"\033[94m{text}\033[0m" if escape else f"\033[94m{text}"
-
-def b_magenta(text = "", *, escape = True) -> str:
-    return f"\033[95m{text}\033[0m" if escape else f"\033[95m{text}"
-
-def b_cyan(text = "", *, escape = True) -> str:
-    return f"\033[96m{text}\033[0m" if escape else f"\033[96m{text}"
-
-def b_white(text = "", *, escape = True) -> str:
-    return f"\033[97m{text}\033[0m" if escape else f"\033[97m{text}"
-
-def bg_b_red(text = "", *, escape = True) -> str:
-    return f"\033[101m{text}\033[0m" if escape else f"\033[101m{text}"
-
-def bg_b_green(text = "", *, escape = True) -> str:
-    return f"\033[102m{text}\033[0m" if escape else f"\033[102m{text}"
-
-def bg_b_yellow(text = "", *, escape = True) -> str:
-    return f"\033[103m{text}\033[0m" if escape else f"\033[103m{text}"
-
-def bg_b_blue(text = "", *, escape = True) -> str:
-    return f"\033[104m{text}\033[0m" if escape else f"\033[104m{text}"
-
-def bg_b_magenta(text = "", *, escape = True) -> str:
-    return f"\033[105m{text}\033[0m" if escape else f"\033[105m{text}"
-
-def bg_b_cyan(text = "", *, escape = True) -> str:
-    return f"\033[106m{text}\033[0m" if escape else f"\033[106m{text}"
-
-def bg_b_white(text = "", *, escape = True) -> str:
-    return f"\033[107m{text}\033[0m" if escape else f"\033[107m{text}"
-
+reset = make_color(0)
+bold = make_color(1)
+italic = make_color(3)
+underline = make_color(4)
+hide = make_color(8)
+black = make_color(30)
+red = make_color(31)
+green = make_color(32)
+yellow = make_color(33)
+blue = make_color(34)
+magenta = make_color(35)
+cyan = make_color(36)
+white = make_color(37)
+gray = make_color(90)
+default = make_color(39)
+bg_black = make_color(30+10)
+bg_red = make_color(31+10)
+bg_green = make_color(32+10)
+bg_yellow = make_color(33+10)
+bg_blue = make_color(34+10)
+bg_magenta = make_color(35+10)
+bg_cyan = make_color(36+10)
+bg_white = make_color(37+10)
+bg_gray = make_color(90+10)
+b_red = make_color(91)
+b_green = make_color(92)
+b_yellow = make_color(93)
+b_blue = make_color(94)
+b_magenta = make_color(95)
+b_cyan = make_color(96)
+b_white = make_color(97)
+bg_b_red = make_color(91+10)
+bg_b_green = make_color(92+10)
+bg_b_yellow = make_color(93+10)
+bg_b_blue = make_color(94+10)
+bg_b_magenta = make_color(95+10)
+bg_b_cyan = make_color(96+10)
+bg_b_white = make_color(97+10)
+bg_default = make_color(39+10)
 
 def color(*args: any | ColorFun, escape = True, sep = " ") -> str:
     ret = ""
@@ -141,21 +68,21 @@ def highlight(text: str, what: str, count = -1, *, colors: list[ColorFun], color
         + what + reset() + hl2
     return hl2 + text.replace(what, replacement, count) + reset()
 
-def highlight_range(text: str, start: int, end: int, *, colors: list[ColorFun], colors2: list[ColorFun] = []) -> str:
+def highlight_range(text: str, start: int, stop: int, *, colors: list[ColorFun], colors2: list[ColorFun] = []) -> str:
     """
-    Returns `text` if `start >= end`. Throws an `AssertionError` if indexes are out of bounds
+    Returns `text` if `start >= stop`. Throws an `AssertionError` if indexes are out of bounds
     """
-    if start >= end:
+    if start >= stop:
         return text
     assert start >= 0 and start < len(text), f"Out of bounds start={start}"
-    assert end >= 0 and end < len(text), f"Out of bounds end={end}"
+    assert stop >= 0 and stop < len(text), f"Out of bounds stop={stop}"
     hl2 = "".join([c(escape = False) for c in colors2])
     return hl2 + text[:start] + reset() \
         + "".join([c(escape = False) for c in colors]) \
-        + text[start:end] \
-        + reset() + hl2 + text[end:] + reset()
+        + text[start:stop] \
+        + reset() + hl2 + text[stop:] + reset()
 
-def highlight_between(text: str, start: str, end: str, *, colors: list[ColorFun], colors2: list[ColorFun] = []) -> str:
+def highlight_between(text: str, start: str, stop: str, *, colors: list[ColorFun], colors2: list[ColorFun] = []) -> str:
     i = 0
     hl = default() + "".join([c(escape = False) for c in colors])
     hl2 = default() + "".join([c(escape = False) for c in colors2])
@@ -163,7 +90,7 @@ def highlight_between(text: str, start: str, end: str, *, colors: list[ColorFun]
     while True:
         old_i = i
         i = text.find(start, i)
-        j = text.find(end, i + 1)
+        j = text.find(stop, i + 1)
         if -1 in [i, j]:
             i = old_i
             break
@@ -265,15 +192,15 @@ def bg_rgb(r: int, g: int, b: int):
         return f"\033[48;2;{r};{g};{b}m{txt}\033[0m" if escape else f"\033[48;2;{r};{g};{b}m{txt}"
     return ret
 
-def gradient_rgb(start: RGB, end: RGB):
+def gradient_rgb(start: RGB, stop: RGB):
     def ret(text: str) -> str:
         ret = ""
         clr = start
         for i, char in enumerate(text):
             clr = (
-                clr[0] + (1 / len(text)) * (end[0] - start[0]),
-                clr[1] + (1 / len(text)) * (end[1] - start[1]),
-                clr[2] + (1 / len(text)) * (end[2] - start[2]),
+                clr[0] + (1 / len(text)) * (stop[0] - start[0]),
+                clr[1] + (1 / len(text)) * (stop[1] - start[1]),
+                clr[2] + (1 / len(text)) * (stop[2] - start[2]),
             )
             print(clr)
             ret += rgb(int(clr[0]), int(clr[1]), int(clr[2]))(char, escape=False)
