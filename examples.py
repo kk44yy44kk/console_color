@@ -63,6 +63,12 @@ print(highlight_between("H'ell'o W'orl'd", "'", "'", colors=[green], colors2=[it
 gr = gradient_rgb((255, 0, 0), (0, 0, 255))
 print(gr("Hello Worldqqqqqqqqqqqqqq"))
 
+print(highlight_between("H'ell'o lW'orllll'd", "'", "'", colors=[gr], colors2=[italic, yellow]))
+print(highlight_range("H'ell'o lW'orllll'd", 2, 12, colors=[gr], colors2=[italic, yellow]))
+print(highlight("12:)34:):)567:):):)89:)0", ":)", colors=[gr], colors2=[italic, yellow]))
+print("\n", progress_bar(0.3333, 10, colors=[gr], char="Loading...", char2="Loading..."), sep="")
+
+
 
 # i = 0
 # for r in range(256):
