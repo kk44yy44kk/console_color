@@ -1,5 +1,5 @@
 from typing import Callable
-from math import floor, ceil
+from math import floor
 
 ColorFun = Callable[[str], str]
 RGB = tuple[int, int, int]
@@ -78,7 +78,7 @@ def highlight(text: str, sub: str, *, colors: list[ColorFun], colors2: list[Colo
     hl2 = compose(colors2)
     i = 0
     i_prev = -99
-    # Gaps are between islands of neighbouring subs
+    # Gaps are characters between islands of neighbouring subs
     gap_start = 0
     gap_end = 0
     while True:
@@ -225,7 +225,6 @@ def bg_rgb(r: int, g: int, b: int):
 
 
 def _make_gradient_rgb(rgb_fn: ColorFun):
-    assert rgb_fn in [rgb, bg_rgb], "This arg needs to be an rgb function"
     def gradient_rgb(start: RGB, stop: RGB):
         def ret(text = "", escape = True) -> str:
             ret = ""
@@ -249,7 +248,7 @@ gradient_rgb = _make_gradient_rgb(rgb)
 bg_gradient_rgb = _make_gradient_rgb(bg_rgb)
 
 _fn2rgb: dict[ColorFun, RGB] = {fn: rgb for rgb, fn, bg_fn in colors}
-# _fn2rgb.update({bg_fn: rgb for rgb, fn, bg_fn in colors})
+_fn2rgb.update({bg_fn: rgb for rgb, fn, bg_fn in colors})
 
 def gradient(start: ColorFun, stop: ColorFun):
     assert start in _fn2rgb.keys(), "This function only accepts premade color functions like red or bg_cyan"
