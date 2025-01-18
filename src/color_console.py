@@ -1,7 +1,8 @@
 from typing import Callable
-from math import floor
+from math import floor, ceil
 
 ColorFun = Callable[[str], str]
+RGB = tuple[int, int, int]
 
 def reset(text = "", *, escape = True) -> str:
     return f"\033[0m{text}"
@@ -154,6 +155,22 @@ def highlight_range(text: str, start: int, end: int, *, colors: list[ColorFun], 
         + text[start:end] \
         + reset() + hl2 + text[end:] + reset()
 
+def highlight_between(text: str, start: str, end: str, *, colors: list[ColorFun], colors2: list[ColorFun] = []) -> str:
+    i = 0
+    hl = default() + "".join([c(escape = False) for c in colors])
+    hl2 = default() + "".join([c(escape = False) for c in colors2])
+    ret = hl2
+    while True:
+        old_i = i
+        i = text.find(start, i)
+        j = text.find(end, i + 1)
+        if -1 in [i, j]:
+            i = old_i
+            break
+        ret += text[old_i:i] + hl + text[i:j+1] + hl2
+        i = j + 1
+    return ret + text[i:] + default()
+
 def uncolor(text: str) -> str:
     ret = ""
     last = 0
@@ -163,10 +180,102 @@ def uncolor(text: str) -> str:
         last = text.find("m", start) + 1
     return ret
 
-def progress_bar(value: float, width: int, *, colors: list[ColorFun] = [green], colors2: list[ColorFun] = [white], char = "#", char2 = ".") -> str:
+def progress_bar(value: float, width: int, *, colors: list[ColorFun] = [green], colors2: list[ColorFun] = [white], char = "#", char2 = ".", percentage = True, on_complete: str | None = None) -> str:
+    assert char != "" and char2 != "", "Chars can't be empty strings"
     clr = "".join([c(escape = False) for c in colors])
     clr2 = "".join([c(escape = False) for c in colors2])
-    return f"\033[A{clr}{char * floor(0.5 + value * width)}\033[0m{clr2}{char2 * floor(0.5 + (1.0 - value) * width)}\033[0m"
+    tail: str
+    if on_complete is not None and value >= 1:
+        tail = " " + on_complete
+    elif percentage:
+        tail = f"({int(value * 100)}%)"
+        tail = f" {tail:<6}"
+    progress_width = floor(value * width)
+    progress = (char * width)[:progress_width]
+    background = (char2 * width)[progress_width:width]
+    return f"\033[A{clr}{progress}\033[0m{clr2}{background}\033[0m{tail}"
 
-# print(highlight("Hello World", "l", colors=[red], colors2=[bg_white]))
-# print(uncolor(highlight_range("Hello World", 2, 7, colors=[b_green], colors2=[bg_blue])))
+colors = [
+    ((0, 0, 0), black, bg_black),
+    ((128, 0, 0), red, bg_red),
+    ((170, 85, 0), yellow, bg_yellow),
+    ((0, 0, 170), blue, bg_blue),
+    ((170, 0, 170), magenta, bg_magenta),
+    ((0, 170, 170), cyan, bg_cyan),
+    ((170, 170, 170), white, bg_white),
+    ((255, 85, 85), b_red, bg_b_red),
+    ((85, 255, 85), b_green, bg_b_green),
+    ((255, 255, 85), b_yellow, bg_b_yellow),
+    ((85, 85, 255), b_blue, bg_b_blue),
+    ((255, 85, 255), b_magenta, bg_b_magenta),
+    ((85, 255, 255), b_cyan, bg_b_cyan),
+    ((255, 255, 255), b_white, bg_b_white),
+    ((100, 100, 100), gray, bg_gray),
+]
+
+def closest_rgb_i(r: int, g: int, b: int) -> int:
+    minimum = 256*3
+    minimum_i = -1
+    for i, clr in enumerate(colors):
+        r2, g2, b2 = clr[0]
+        diff = abs(r2 - r) + abs(g2 - g) + abs(b2 - b)
+        if diff < minimum:
+            minimum = diff
+            minimum_i = i
+    return minimum_i
+
+force_4_bit = False
+
+def set_force_4_bit(value: bool) -> None:
+    """
+    If `force_4_bit` is `True`, then functions `rgb` and `bg_rgb` will return the closest predefined color functions
+
+    Ex. `rgb(0, 0, 0)` will return the `black` function
+    """
+    global force_4_bit
+    force_4_bit = value
+
+def rgb(r: int, g: int, b: int):
+    """
+    Returns a custom 24-bit color function
+    """
+    assert r in range(256), f"r = {r}, it needs to be in range 0..255"
+    assert g in range(256), f"g = {g}, it needs to be in range 0..255"
+    assert b in range(256), f"b = {b}, it needs to be in range 0..255"
+    global force_4_bit
+    if force_4_bit:
+        i = closest_rgb_i(r, g, b)
+        return colors[i][1]
+    def ret(txt: str, escape = True) -> str:
+        return f"\033[38;2;{r};{g};{b}m{txt}\033[0m" if escape else f"\033[38;2;{r};{g};{b}m{txt}"
+    return ret
+
+def bg_rgb(r: int, g: int, b: int):
+    """
+    Returns a custom 24-bit color function for backgrounds
+    """
+    assert r in range(256), f"r = {r}, it needs to be in range 0..255"
+    assert g in range(256), f"g = {g}, it needs to be in range 0..255"
+    assert b in range(256), f"b = {b}, it needs to be in range 0..255"
+    global force_4_bit
+    if force_4_bit:
+        i = closest_rgb_i(r, g, b)
+        return colors[i][2]
+    def ret(txt: str, escape = True) -> str:
+        return f"\033[48;2;{r};{g};{b}m{txt}\033[0m" if escape else f"\033[48;2;{r};{g};{b}m{txt}"
+    return ret
+
+def gradient_rgb(start: RGB, end: RGB):
+    def ret(text: str) -> str:
+        ret = ""
+        clr = start
+        for i, char in enumerate(text):
+            clr = (
+                clr[0] + (1 / len(text)) * (end[0] - start[0]),
+                clr[1] + (1 / len(text)) * (end[1] - start[1]),
+                clr[2] + (1 / len(text)) * (end[2] - start[2]),
+            )
+            print(clr)
+            ret += rgb(int(clr[0]), int(clr[1]), int(clr[2]))(char, escape=False)
+        return ret + reset()
+    return ret
