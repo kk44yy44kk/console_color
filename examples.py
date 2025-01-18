@@ -68,6 +68,8 @@ print(highlight_range("H'ell'o lW'orllll'd", 2, 12, colors=[gr], colors2=[italic
 print(highlight("12:)34:):)567:):):)89:)0", ":)", colors=[gr], colors2=[italic, yellow]))
 print("\n", progress_bar(0.3333, 10, colors=[gr], char="Loading...", char2="Loading..."), sep="")
 
+print(bg_gradient(b_red, b_yellow)("HELLO WORLD"))
+
 
 
 # i = 0

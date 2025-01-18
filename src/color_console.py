@@ -150,23 +150,26 @@ def progress_bar(value: float, width: int, *, colors: list[ColorFun] = [green], 
     background = (char2 * width)[progress_width:width]
     return f"\033[A{hl(progress)}{hl2(background)}{tail}"
 
+dim, nrm, bri = 90, 180, 255
 colors = [
     ((0, 0, 0), black, bg_black),
-    ((128, 0, 0), red, bg_red),
-    ((170, 85, 0), yellow, bg_yellow),
-    ((0, 0, 170), blue, bg_blue),
-    ((170, 0, 170), magenta, bg_magenta),
-    ((0, 170, 170), cyan, bg_cyan),
-    ((170, 170, 170), white, bg_white),
-    ((255, 85, 85), b_red, bg_b_red),
-    ((85, 255, 85), b_green, bg_b_green),
-    ((255, 255, 85), b_yellow, bg_b_yellow),
-    ((85, 85, 255), b_blue, bg_b_blue),
-    ((255, 85, 255), b_magenta, bg_b_magenta),
-    ((85, 255, 255), b_cyan, bg_b_cyan),
-    ((255, 255, 255), b_white, bg_b_white),
-    ((100, 100, 100), gray, bg_gray),
+    ((nrm, 0, 0), red, bg_red),
+    ((0, nrm, 0), green, bg_green),
+    ((nrm, dim, 0), yellow, bg_yellow),
+    ((0, 0, nrm), blue, bg_blue),
+    ((nrm, 0, nrm), magenta, bg_magenta),
+    ((0, nrm, nrm), cyan, bg_cyan),
+    ((nrm, nrm, nrm), white, bg_white),
+    ((bri, dim, dim), b_red, bg_b_red),
+    ((dim, bri, dim), b_green, bg_b_green),
+    ((bri, bri, dim), b_yellow, bg_b_yellow),
+    ((dim, dim, bri), b_blue, bg_b_blue),
+    ((bri, dim, bri), b_magenta, bg_b_magenta),
+    ((dim, bri, bri), b_cyan, bg_b_cyan),
+    ((bri, bri, bri), b_white, bg_b_white),
+    ((dim, dim, dim), gray, bg_gray),
 ]
+
 
 def _closest_rgb_i(r: int, g: int, b: int) -> int:
     minimum = 256*3
@@ -220,20 +223,40 @@ def bg_rgb(r: int, g: int, b: int):
         return f"\033[48;2;{r};{g};{b}m{txt}\033[0m" if escape else f"\033[48;2;{r};{g};{b}m{txt}"
     return ret
 
-def gradient_rgb(start: RGB, stop: RGB):
-    def ret(text = "", escape = True) -> str:
-        ret = ""
-        clr = start
-        if text != "":
-            fraction = 1 / len(text)
-        for char in text:
-            clr = (
-                clr[0] + (fraction) * (stop[0] - start[0]),
-                clr[1] + (fraction) * (stop[1] - start[1]),
-                clr[2] + (fraction) * (stop[2] - start[2]),
-            )
-            ret += rgb(int(clr[0]), int(clr[1]), int(clr[2]))(char, escape=False)
-        if escape:
-            ret += reset()
+
+def _make_gradient_rgb(rgb_fn: ColorFun):
+    assert rgb_fn in [rgb, bg_rgb], "This arg needs to be an rgb function"
+    def gradient_rgb(start: RGB, stop: RGB):
+        def ret(text = "", escape = True) -> str:
+            ret = ""
+            rgb = start
+            if text != "":
+                fraction = 1 / len(text)
+            for char in text:
+                rgb = (
+                    rgb[0] + (fraction) * (stop[0] - start[0]),
+                    rgb[1] + (fraction) * (stop[1] - start[1]),
+                    rgb[2] + (fraction) * (stop[2] - start[2]),
+                )
+                ret += rgb_fn(int(rgb[0]), int(rgb[1]), int(rgb[2]))(char, escape=False)
+            if escape:
+                ret += reset()
+            return ret
         return ret
-    return ret
+    return gradient_rgb
+
+gradient_rgb = _make_gradient_rgb(rgb)
+bg_gradient_rgb = _make_gradient_rgb(bg_rgb)
+
+_fn2rgb: dict[ColorFun, RGB] = {fn: rgb for rgb, fn, bg_fn in colors}
+# _fn2rgb.update({bg_fn: rgb for rgb, fn, bg_fn in colors})
+
+def gradient(start: ColorFun, stop: ColorFun):
+    assert start in _fn2rgb.keys(), "This function only accepts premade color functions like red or bg_cyan"
+    assert stop in _fn2rgb.keys(), "This function only accepts premade color functions like red or bg_cyan"
+    return gradient_rgb(_fn2rgb[start], _fn2rgb[stop])
+
+def bg_gradient(start: ColorFun, stop: ColorFun):
+    assert start in _fn2rgb.keys(), "This function only accepts premade color functions like red or bg_cyan"
+    assert stop in _fn2rgb.keys(), "This function only accepts premade color functions like red or bg_cyan"
+    return bg_gradient_rgb(_fn2rgb[start], _fn2rgb[stop])
