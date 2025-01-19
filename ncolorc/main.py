@@ -2,6 +2,7 @@ from typing import Callable
 from math import floor
 
 ColorFun = Callable[[str], str]
+"""It also has a `escape = True` keyword only argument"""
 RGB = tuple[int, int, int]
 
 def _make_color(code: int):
@@ -24,6 +25,7 @@ bold = _make_color(1)
 italic = _make_color(3)
 underline = _make_color(4)
 hide = _make_color(8)
+default = _make_color(39)
 black = _make_color(30)
 red = _make_color(31)
 green = _make_color(32)
@@ -33,7 +35,14 @@ magenta = _make_color(35)
 cyan = _make_color(36)
 white = _make_color(37)
 gray = _make_color(90)
-default = _make_color(39)
+b_red = _make_color(91)
+b_green = _make_color(92)
+b_yellow = _make_color(93)
+b_blue = _make_color(94)
+b_magenta = _make_color(95)
+b_cyan = _make_color(96)
+b_white = _make_color(97)
+bg_default = _make_color(39+10)
 bg_black = _make_color(30+10)
 bg_red = _make_color(31+10)
 bg_green = _make_color(32+10)
@@ -43,13 +52,6 @@ bg_magenta = _make_color(35+10)
 bg_cyan = _make_color(36+10)
 bg_white = _make_color(37+10)
 bg_gray = _make_color(90+10)
-b_red = _make_color(91)
-b_green = _make_color(92)
-b_yellow = _make_color(93)
-b_blue = _make_color(94)
-b_magenta = _make_color(95)
-b_cyan = _make_color(96)
-b_white = _make_color(97)
 bg_b_red = _make_color(91+10)
 bg_b_green = _make_color(92+10)
 bg_b_yellow = _make_color(93+10)
@@ -57,7 +59,6 @@ bg_b_blue = _make_color(94+10)
 bg_b_magenta = _make_color(95+10)
 bg_b_cyan = _make_color(96+10)
 bg_b_white = _make_color(97+10)
-bg_default = _make_color(39+10)
 
 def color(*args: any | ColorFun, escape = True, sep = " ") -> str:
     ret = ""
@@ -91,11 +92,7 @@ def highlight(text: str, sub: str, *, colors: list[ColorFun], colors2: list[Colo
         gap_start = i + len(sub)
         i_prev = i
         i += 1
-
-
-
-
-    return ret
+    return ret + hl(text[gap_end:gap_start]) + hl2(text[gap_start:])
 
 def highlight_range(text: str, start: int, stop: int, *, colors: list[ColorFun], colors2: list[ColorFun] = []) -> str:
     """
@@ -126,6 +123,7 @@ def highlight_between(text: str, start: str, stop: str, *, colors: list[ColorFun
     return ret + hl2(text[i:])
 
 def uncolor(text: str) -> str:
+    """Removes all ANSI graphical renditions"""
     ret = ""
     last = 0
     while last < len(text):
@@ -139,7 +137,7 @@ def progress_bar(value: float, width: int, *, colors: list[ColorFun] = [green], 
     assert char != "" and char2 != "", "Chars can't be empty strings"
     hl = compose(colors)
     hl2 = compose(colors2)
-    tail: str
+    tail = ""
     if on_complete is not None and value >= 1:
         tail = " " + on_complete
     elif percentage:
@@ -150,31 +148,41 @@ def progress_bar(value: float, width: int, *, colors: list[ColorFun] = [green], 
     background = (char2 * width)[progress_width:width]
     return f"\033[A{hl(progress)}{hl2(background)}{tail}"
 
-dim, nrm, bri = 90, 180, 255
-colors = [
+_dim, _nrm, _bri = 90, 180, 255
+approx_colors: tuple[RGB, ColorFun, ColorFun] = [
     ((0, 0, 0), black, bg_black),
-    ((nrm, 0, 0), red, bg_red),
-    ((0, nrm, 0), green, bg_green),
-    ((nrm, dim, 0), yellow, bg_yellow),
-    ((0, 0, nrm), blue, bg_blue),
-    ((nrm, 0, nrm), magenta, bg_magenta),
-    ((0, nrm, nrm), cyan, bg_cyan),
-    ((nrm, nrm, nrm), white, bg_white),
-    ((bri, dim, dim), b_red, bg_b_red),
-    ((dim, bri, dim), b_green, bg_b_green),
-    ((bri, bri, dim), b_yellow, bg_b_yellow),
-    ((dim, dim, bri), b_blue, bg_b_blue),
-    ((bri, dim, bri), b_magenta, bg_b_magenta),
-    ((dim, bri, bri), b_cyan, bg_b_cyan),
-    ((bri, bri, bri), b_white, bg_b_white),
-    ((dim, dim, dim), gray, bg_gray),
+    ((_nrm, 0, 0), red, bg_red),
+    ((0, _nrm, 0), green, bg_green),
+    ((_nrm, _dim, 0), yellow, bg_yellow),
+    ((0, 0, _nrm), blue, bg_blue),
+    ((_nrm, 0, _nrm), magenta, bg_magenta),
+    ((0, _nrm, _nrm), cyan, bg_cyan),
+    ((_nrm, _nrm, _nrm), white, bg_white),
+    ((_bri, _dim, _dim), b_red, bg_b_red),
+    ((_dim, _bri, _dim), b_green, bg_b_green),
+    ((_bri, _bri, _dim), b_yellow, bg_b_yellow),
+    ((_dim, _dim, _bri), b_blue, bg_b_blue),
+    ((_bri, _dim, _bri), b_magenta, bg_b_magenta),
+    ((_dim, _bri, _bri), b_cyan, bg_b_cyan),
+    ((_bri, _bri, _bri), b_white, bg_b_white),
+    ((_dim, _dim, _dim), gray, bg_gray),
 ]
 
+_color2approx: dict[ColorFun, RGB]
 
-def _closest_rgb_i(r: int, g: int, b: int) -> int:
+def approx_colors_set(new: tuple[RGB, ColorFun, ColorFun]) -> None:
+    global approx_colors
+    global _color2approx
+    approx_colors = new
+    _color2approx = {fn: rgb for rgb, fn, bg_fn in approx_colors}
+    _color2approx.update({bg_fn: rgb for rgb, fn, bg_fn in approx_colors})
+
+approx_colors_set(approx_colors)
+
+def _approx_color_i_get(r: int, g: int, b: int) -> int:
     minimum = 256*3
     minimum_i = -1
-    for i, clr in enumerate(colors):
+    for i, clr in enumerate(approx_colors):
         r2, g2, b2 = clr[0]
         diff = abs(r2 - r) + abs(g2 - g) + abs(b2 - b)
         if diff < minimum:
@@ -182,49 +190,52 @@ def _closest_rgb_i(r: int, g: int, b: int) -> int:
             minimum_i = i
     return minimum_i
 
-force_4_bit = False
+approx_colors_force = False
 
-def set_force_4_bit(value: bool) -> None:
+def approx_colors_force_set(value: bool) -> None:
     """
-    If `force_4_bit` is `True`, then functions `rgb` and `bg_rgb` will return the closest predefined color functions
+    If `approx_colors_force` is `True`, then functions `rgb` and `bg_rgb` will return the closest predefined color functions
 
     Ex. `rgb(0, 0, 0)` will return the `black` function
     """
-    global force_4_bit
-    force_4_bit = value
+    global approx_colors_force
+    approx_colors_force = value
 
-def rgb(r: int, g: int, b: int):
+def rgb(rgb: RGB):
     """
     Returns a custom 24-bit color function
     """
+    r, g, b = rgb
     assert r in range(256), f"r = {r}, it needs to be in range 0..255"
     assert g in range(256), f"g = {g}, it needs to be in range 0..255"
     assert b in range(256), f"b = {b}, it needs to be in range 0..255"
-    global force_4_bit
-    if force_4_bit:
-        i = _closest_rgb_i(r, g, b)
-        return colors[i][1]
+    global approx_colors_force
+    if approx_colors_force:
+        i = _approx_color_i_get(r, g, b)
+        return approx_colors[i][1]
     def ret(txt: str, escape = True) -> str:
         return f"\033[38;2;{r};{g};{b}m{txt}\033[0m" if escape else f"\033[38;2;{r};{g};{b}m{txt}"
     return ret
 
-def bg_rgb(r: int, g: int, b: int):
+def bg_rgb(rgb: RGB):
     """
     Returns a custom 24-bit color function for backgrounds
     """
+    r, g, b = rgb
     assert r in range(256), f"r = {r}, it needs to be in range 0..255"
     assert g in range(256), f"g = {g}, it needs to be in range 0..255"
     assert b in range(256), f"b = {b}, it needs to be in range 0..255"
-    global force_4_bit
-    if force_4_bit:
-        i = _closest_rgb_i(r, g, b)
-        return colors[i][2]
+    global approx_colors_force
+    if approx_colors_force:
+        i = _approx_color_i_get(r, g, b)
+        return approx_colors[i][2]
     def ret(txt: str, escape = True) -> str:
         return f"\033[48;2;{r};{g};{b}m{txt}\033[0m" if escape else f"\033[48;2;{r};{g};{b}m{txt}"
     return ret
 
 
-def _make_gradient_rgb(rgb_fn: ColorFun):
+def _make_gradient_rgb(rgb_fn: Callable):
+    assert rgb_fn in [rgb, bg_rgb], "It needs to be one of these two functions"
     def gradient_rgb(start: RGB, stop: RGB):
         def ret(text = "", escape = True) -> str:
             ret = ""
@@ -237,7 +248,7 @@ def _make_gradient_rgb(rgb_fn: ColorFun):
                     rgb[1] + (fraction) * (stop[1] - start[1]),
                     rgb[2] + (fraction) * (stop[2] - start[2]),
                 )
-                ret += rgb_fn(int(rgb[0]), int(rgb[1]), int(rgb[2]))(char, escape=False)
+                ret += rgb_fn((int(rgb[0]), int(rgb[1]), int(rgb[2])))(char, escape=False)
             if escape:
                 ret += reset()
             return ret
@@ -247,15 +258,17 @@ def _make_gradient_rgb(rgb_fn: ColorFun):
 gradient_rgb = _make_gradient_rgb(rgb)
 bg_gradient_rgb = _make_gradient_rgb(bg_rgb)
 
-_fn2rgb: dict[ColorFun, RGB] = {fn: rgb for rgb, fn, bg_fn in colors}
-_fn2rgb.update({bg_fn: rgb for rgb, fn, bg_fn in colors})
-
 def gradient(start: ColorFun, stop: ColorFun):
-    assert start in _fn2rgb.keys(), "This function only accepts premade color functions like red or bg_cyan"
-    assert stop in _fn2rgb.keys(), "This function only accepts premade color functions like red or bg_cyan"
-    return gradient_rgb(_fn2rgb[start], _fn2rgb[stop])
+    assert start in _color2approx.keys(), "This function only accepts premade color functions like red or bg_cyan"
+    assert stop in _color2approx.keys(), "This function only accepts premade color functions like red or bg_cyan"
+    return gradient_rgb(_color2approx[start], _color2approx[stop])
 
 def bg_gradient(start: ColorFun, stop: ColorFun):
-    assert start in _fn2rgb.keys(), "This function only accepts premade color functions like red or bg_cyan"
-    assert stop in _fn2rgb.keys(), "This function only accepts premade color functions like red or bg_cyan"
-    return bg_gradient_rgb(_fn2rgb[start], _fn2rgb[stop])
+    assert start in _color2approx.keys(), "This function only accepts premade color functions like red or bg_cyan"
+    assert stop in _color2approx.keys(), "This function only accepts premade color functions like red or bg_cyan"
+    return bg_gradient_rgb(_color2approx[start], _color2approx[stop])
+
+def hex2rgb(code: str) -> RGB:
+    code = code.removeprefix("#")
+    assert len(code) == 6, "TODO"
+    return (int(code[0:2], 16), int(code[2:4], 16), int(code[4:6], 16))

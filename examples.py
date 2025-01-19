@@ -1,102 +1,90 @@
-# from src.color_console import \
-#     color, highlight, highlight_range, uncolor, progress_bar, highlight_between, \
-#     green, yellow, cyan, red, b_white, \
-#     underline, italic, bold, \
-#     bg_red, bg_green, bg_yellow, bg_b_white, bg_b_green
+from ncolorc import *
 
-from src.color_console import *
-
-def c(txt: str) -> str:
-    return color(b_white, italic, f"\"{txt}\"")
-
-print(c('print(green("Hello"), yellow("World"))'))
-print(green("Hello"), yellow("World"))
+# 0. Overwiew
+print(f"\n{'0. Overview':^100}\n")
+print("This is a very", red("important"), "message")
+print(color(bold, "This", reset, "is a very", red, "important", "message"))
+print(highlight("This is a very important message", "i", colors=[bg_yellow]))
 print()
+print(progress_bar(0.444, 20, char="=", char2="_"))
+gradient_very_cool = gradient_rgb((0, 255, 100), (0, 100, 255))
+print(highlight_between("This 'gradient' is very cool, I call it the 'very cool gradient'. It looks very nice :)", "'", "'", colors=[gradient_very_cool]))
+bg_gradient_very_cool = bg_gradient(bg_b_red, bg_b_yellow)
+print(highlight(":):)12345:):):):):)6~~~~~~~~~~~~~~~~~~~~7:)890", ":)", colors=[rgb(hex2rgb("00EEFE"))], colors2=[bg_gradient_very_cool]))
 
-print(c('print(x := color(cyan, underline, "Hello", bg_red, "World"))'))
-print(x := color(cyan, underline, "Hello", red, "World"))
-print()
-
-print(c('print(uncolor(x))'))
+# 1. Colors
+print(f"\n{'1. Colors':^100}\n")
+print(green("Hello,"), yellow("World!"))
+print(bg_red("Hello,", escape=False), "World!" + reset()) # Background will bleed into the next word
+# This looks really complicated vvv
+print(underline(cyan("Hello,", escape=False) + " " + magenta("World!")))
+# But it can be simplified with the `color` function
+print(color(underline, cyan, "Hello,", magenta, "World!"))
+# You can also use 24-bit rgb colors
+fuchsia = rgb((255, 0, 255))
+print(fuchsia("Hello, World!"))
+# Same with background colors
+bg_bone = bg_rgb(hex2rgb("#E3DAC9"))
+x = bg_bone("Hello, World!")
+print(x)
+# You can also uncolor stuff
 print(uncolor(x))
+
+# 2. Highlighting
+print(f"\n{'2. Highlighting':^100}\n")
+print(highlight("Hello, World!", "l", colors=[fuchsia]))
+# You can also highlight the unhighlighted
+print(highlight("Hello, World!", "l", colors=[fuchsia], colors2=[bg_bone]))
+# Or in an index range
+print(highlight_range("Hello, World!", 3, 8, colors=[b_red]))
+# Or between two two substring
+print(highlight_between("Hello, Hello!", "H", "l", colors=[yellow, bold]))
+# Or like this
+print(highlight_between("'Hello', 'World!'", "'", "'", colors=[green, italic]))
+
+# 3. Progress Bars
+print(f"\n{'3. Progress Bars':^100}\n")
 print()
-
-print(c('print(rgb(255, 0, 100)("Hello"), bg_rgb(100, 0, 255)("World"))'))
-print(rgb(255, 0, 100)("Hello"), bg_rgb(100, 0, 255)("World"))
+print(progress_bar(0.33, 20))
+print(progress_bar(0.66, 20))
+print(progress_bar(0.99, 20))
 print()
-
-print(c('set_force_4_bit(True)'))
-print(c('print(rgb(255, 0, 100)("Hello"), bg_rgb(100, 0, 255)("World"))'))
-set_force_4_bit(True)
-print(rgb(255, 0, 100)("Hello"), bg_rgb(100, 0, 255)("World"))
+# They get printed on top of the last line
+# You can change the chars of the loaded and yet to be loaded parts
+print(progress_bar(0.72, 20, char="+", char2="."))
 print()
-set_force_4_bit(False)
-
-print(c('print(highlight("Hello World", "l", colors=[bg_green, italic, bold]))'))
-print(highlight("Hello World", "l", colors=[bg_green, italic, bold]))
+# Or make them flat rectangles
+print(progress_bar(0.57, 20, char=" ", char2=" ", colors=[bg_green], colors2=[bg_yellow]))
 print()
-
-print(c('print(highlight_range("Hello World", 3, 8, colors=[cyan, underline]))'))
-print(highlight_range("Hello World", 3, 8, colors=[cyan, underline]))
+# Or a loading message
+message = "Loading..."
+print(progress_bar(0.5, len(message), char=message, char2=message))
 print()
-
-print(c('print(highlight("Hello World", "l", colors=[red, underline, bold], colors2=[bg_yellow, italic]))'))
-print(highlight("Hello World", "l", colors=[red, underline, bold], colors2=[bg_yellow, italic]))
+# The width argument accounts only for the bar itself, not the loading percentage
+# But you can turn it off
+print(progress_bar(0.33, len(message), char=message, char2=message, percentage=False))
 print()
+# You can also add a on_complete message
+print(progress_bar(1.0, len(message), char=message, char2=message, on_complete="Done!"))
 
-print(c('print("\\n", progress_bar(0.35, 20, colors=[bg_b_green], colors2=[bg_b_white], char=" ", char2=" "), sep="")'))
-print("\n", progress_bar(0.999, 20, colors=[bg_b_green], colors2=[bg_b_white], char=" ", char2=" "), sep="")
+# 4. Gradients
+print(f"\n{'4. Gradients':^100}\n")
+red_to_blue = gradient(b_red, b_blue)
+print(red_to_blue("Hello, World!"))
+# Most default, non-bright colors arent too good for making gradients
+# You can change it with the approx_colors_set() funciton
+# But it's a better idea to use curstom RGB values
+gradient_custom = gradient_rgb((255, 0, 255), hex2rgb("#E3DAC9"))
+print(gradient_custom("Hello, World!"))
+# Only linear gradients are possible as of today
+# But you can use them with other functions from this module (except color())
 print()
-
-print(c('print("\\n", progress_bar(0.55, 10, colors=[bold, green], char="Loading...", char2="Loading..."), sep="")'))
-print("\n", progress_bar(0.3333, 10, colors=[bold, green], char="Loading...", char2="Loading..."), sep="")
+green_to_red = gradient(b_green, b_red)
+# The gradient gets streched out when the progress_bar is loaded, I might do something about it later
+print(progress_bar(1.0, len(message), colors=[green_to_red], char=message, char2=message, on_complete="Done!"))
+print(highlight("Hlellllllo, Worlld!", "l", colors=[red_to_blue]))
+print(highlight_range("Helloooo, World!", 3, 13, colors=[gradient_custom]))
+gradient_sea = gradient_rgb((0, 255, 100), (0, 100, 255))
+# Put the gradients first because they escape every single character and that includes ANSI escape sequences
+print(highlight_between("'Hello', 'World!'", "'", "'", colors=[gradient_sea, underline]))
 print()
-
-print(c('print("\\n", progress_bar(1, 10, colors=[bold, green], char="Loading...", char2="Loading...", on_complete="Done!"), sep="")'))
-print("\n", progress_bar(1, 10, colors=[bold, green], char="Loading...", char2="Loading...", on_complete="Done!"), sep="")
-print()
-
-print(c('print(highlight_between("H\'ell\'o W\'orl\'d", "\'", "\'", colors=[green], colors2=[italic, yellow]))'))
-print(highlight_between("H'ell'o W'orl'd", "'", "'", colors=[green], colors2=[italic, yellow]))
-
-
-gr = gradient_rgb((255, 0, 0), (0, 0, 255))
-print(gr("Hello Worldqqqqqqqqqqqqqq"))
-
-print(highlight_between("H'ell'o lW'orllll'd", "'", "'", colors=[gr], colors2=[italic, yellow]))
-print(highlight_range("H'ell'o lW'orllll'd", 2, 12, colors=[gr], colors2=[italic, yellow]))
-print(highlight("12:)34:):)567:):):)89:)0", ":)", colors=[gr], colors2=[italic, yellow]))
-print("\n", progress_bar(0.3333, 10, colors=[gr], char="Loading...", char2="Loading..."), sep="")
-
-print(gradient(b_red, b_blue)("HELLO WORLD"))
-
-
-
-# i = 0
-# for r in range(256):
-#     for g in range(256):
-#         for b in range(256):
-#             closest = closest_rgb_i(r, g, b)
-#             t = f"{str((r, g, b)):>15} -> {str(colors[closest][0]):<13}" \
-#                 + rgb(r, g, b)("x") + bg_rgb(r, g, b)("x") \
-#                 + " " \
-#                 + rgb(r, g, b, safe=True)("x") + bg_rgb(r, g, b, safe=True)("x")
-#             print(t, end="")
-#             i += 1
-#             if i == 2:
-#                 i = 0
-#                 print()
-
-
-# def test_rgb(r, g, b):
-#     print(
-#         rgb(r,g,b)("x"),
-#         bg_rgb(r,g,b)("x"),
-#         rgb(r,g,b,safe=True)("x"),
-#         bg_rgb(r,g,b, safe=True)("x"),
-#     )
-
-# test_rgb(200, 200, 200)
-
-# for (r, g, b), clr, bg_clr in colors:
-#     print((r, g, b), closest_rgb_i(r, g, b))
