@@ -1,4 +1,4 @@
-from ncolorc import *
+from ncc import *
 
 # 0. Overwiew
 print(f"\n{'0. Overview':^100}\n")
@@ -6,7 +6,7 @@ print("This is a very", red("important"), "message")
 print(color(bold, "This", reset, "is a very", red, "important", "message"))
 print(highlight("This is a very important message", "i", colors=[bg_yellow]))
 print()
-print(progress_bar(0.444, 20, char="=", char2="_"))
+print(progress_bar(0.444, 20, chars="=", chars2="_"))
 gradient_very_cool = gradient_rgb((0, 255, 100), (0, 100, 255))
 print(highlight_between("This 'gradient' is very cool, I call it the 'very cool gradient'. It looks very nice :)", "'", "'", colors=[gradient_very_cool]))
 bg_gradient_very_cool = bg_gradient(bg_b_red, bg_b_yellow)
@@ -51,21 +51,21 @@ print(progress_bar(0.99, 20))
 print()
 # They get printed on top of the last line
 # You can change the chars of the loaded and yet to be loaded parts
-print(progress_bar(0.72, 20, char="+", char2="."))
+print(progress_bar(0.23, 20, chars="=", chars2=" ", head=">"))
 print()
 # Or make them flat rectangles
-print(progress_bar(0.57, 20, char=" ", char2=" ", colors=[bg_green], colors2=[bg_yellow]))
+print(progress_bar(0.82, 22, chars=" ", chars2="\u2592", colors=[bg_white], head=None, frame_bar="$$"))
 print()
 # Or a loading message
 message = "Loading..."
-print(progress_bar(0.5, len(message), char=message, char2=message))
+print(progress_bar(0.5, len(message), chars=message, chars2=message, frame_bar="$$", head=None))
 print()
 # The width argument accounts only for the bar itself, not the loading percentage
 # But you can turn it off
-print(progress_bar(0.33, len(message), char=message, char2=message, percentage=False))
+print(progress_bar(0.33, len(message), chars=message, chars2=message, frame_percentage=None, frame_bar="$$"))
 print()
 # You can also add a on_complete message
-print(progress_bar(1.0, len(message), char=message, char2=message, on_complete="Done!"))
+print(progress_bar(3.0, len(message), chars=message, chars2=message, on_complete="Done!", frame_bar="$$"))
 
 # 4. Gradients
 print(f"\n{'4. Gradients':^100}\n")
@@ -81,7 +81,7 @@ print(gradient_custom("Hello, World!"))
 print()
 green_to_red = gradient(b_green, b_red)
 # The gradient gets streched out when the progress_bar is loaded, I might do something about it later
-print(progress_bar(1.0, len(message), colors=[green_to_red], char=message, char2=message, on_complete="Done!"))
+print(progress_bar(1.0, len(message), colors=[green_to_red], chars=message, chars2=message, on_complete="Done!"))
 print(highlight("Hlellllllo, Worlld!", "l", colors=[red_to_blue]))
 print(highlight_range("Helloooo, World!", 3, 13, colors=[gradient_custom]))
 gradient_sea = gradient_rgb((0, 255, 100), (0, 100, 255))
