@@ -1,9 +1,10 @@
-# console_color
-Is a very simple python library for changing text color with ANSI escape codes.
+# ncolorc
+Is a very simple Python module for changing text color with ANSI escape codes.
+It offers a minimalistic and customisable functional approach to coloring and highlighting text inside of the terminal. Ncolorc also provides a simple way to make progress bars.
 
-All of the code below can be found in the [examples](examples.py) script. Output of the examples script:
+Output of the [examples](examples/examples.py) script:
 
-![examples](examples.png)
+![examples](examples/examples.png)
 
 ## Overwiew
 ```python
