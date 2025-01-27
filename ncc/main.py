@@ -1,5 +1,6 @@
-from typing import Callable
+from typing import Callable, Any, Generator, TypeVar, Iterable
 from math import floor
+from time import sleep
 
 ColorFun = Callable[[str], str]
 """It also has a `escape = True` keyword only argument"""
@@ -99,6 +100,32 @@ bg_b_cyan = _make_color(96+10)
 bg_b_white = _make_color(97+10)
 """Returns `text` renditioned with an ANSI code. If `escape` is `True`, the rendition will be reset at the end of the returned string."""
 
+class Veil(list[ColorFun | Any]):
+    """
+    An object version of the `color` function. When it's converted to a string, all `ColorFun`s are ommited.
+    In order to get get the color version, use it as an argument to the `color` function
+    """
+    def __init__(self, *args, sep=" ", escape=True) -> None:
+        """
+        An object version of the `color` function. When it's converted to a string, all `ColorFun`s are ommited.
+        In order to get get the color version, use it as an argument to the `color` function
+        """
+        super().__init__(self)
+        self.extend(args)
+        self.sep: str = sep
+        self.escape: bool = escape
+
+    def __str__(self) -> str:
+        return uncolor(self.sep.join(
+            map(
+                str,
+                filter(lambda e: not isinstance(e, Callable), self)
+            )
+        ))
+
+    def __repr__(self):
+        return self.__str__()
+
 def color(*args: any | ColorFun, escape = True, sep = " ") -> str:
     """
     Allows for chaining many `ColorFun`s without escaping them.
@@ -111,13 +138,17 @@ def color(*args: any | ColorFun, escape = True, sep = " ") -> str:
     for arg in args:
         if isinstance(arg, Callable):
             ret += arg(escape = False)
+        elif isinstance(arg, Veil):
+            ret += color(*arg, escape=arg.escape, sep=arg.sep) + sep
         else:
             ret += str(arg) + sep
     if ret.endswith(sep):
         ret = ret.removesuffix(sep)
     if escape:
         ret += reset()
-    return ret
+    return ret.removesuffix(" ")
+
+
 
 def highlight(text: str, sub: str, *, colors: list[ColorFun], colors2: list[ColorFun] = []) -> str:
     """
@@ -181,24 +212,36 @@ def uncolor(text: str) -> str:
     Removes all ANSI graphical renditions
     """
     ret = ""
-    last = 0
-    while last < len(text) or last == -1:
-        start = text.find("\033", last)
-        ret += text[last:start]
-        last = text.find("m", start) + 1
-    return ret
+    start = 0
+    stop = 0
+    stop_old = 0
+    while True:
+        start = text.find("\033[", stop)
+        stop_old = stop
+        if start == -1:
+            break
+        ret += text[stop:start]
+        # print(f"\"{text[stop:start]}\"", stop, start)
+        stop = text.find("m", start) + 1
+        if stop == 0:
+            break
 
-PROGRESS_BAR_REPLACE = "$$"
+    return ret + text[stop_old:]
+
+
+_PB_REPLACE = "$$"
+_PB_REPLACE_PERCENT = "$%"
 def progress_bar(
-        value: float, width: int, *,
+        i: int, i_max: int, width: int, *,
         colors: list[ColorFun] = [green], colors2: list[ColorFun] = [white],
         chars = "=", chars2 = "-",
-        frame_bar: str | None = f"[{PROGRESS_BAR_REPLACE}]", frame_percentage: str | None = PROGRESS_BAR_REPLACE,
+        frame_bar: str | None = f"[{_PB_REPLACE}]", frame_tail: str | None = _PB_REPLACE_PERCENT,
         head: str | None = None,
         on_complete: str | None = None,
     ) -> str:
     """
-    Returns a progress bar of a given `width`. `value` is a number between `0` and `1` and denotes the progress.
+    TODO
+    Returns a progress bar of a given `width`.
 
     `chars` are repeated for the completed part of the progress bar and are highlighted with `colors`. `chars2` and `colors2` work analogously.
 
@@ -210,17 +253,24 @@ def progress_bar(
 
     `on_complete` replaces precentage and `frame_percentage` if `value == 1.0`.
     """
+    value = float(i) / float(i_max)
     # TODO?: make gradients scale properly
+    # TODO:  head at 0 progress width should be 0 % or sth
     assert chars != "" and chars2 != "", "Chars can't be empty strings"
     hl = compose(colors)
     hl2 = compose(colors2)
     tail_label = ""
     if on_complete is not None and value == 1:
         tail_label = " " + on_complete
-    elif frame_percentage is not None:
-        digits = int(value * 100)
-        tail_label = frame_percentage.replace(PROGRESS_BAR_REPLACE, f"{digits}%")
-        tail_label = " " + tail_label + " " * (3 - len(str(digits)))
+    elif frame_tail is not None:
+        tail_label = " " + frame_tail
+        if _PB_REPLACE_PERCENT in frame_tail:
+            digits = int(value * 100)
+            tail_label = tail_label.replace(_PB_REPLACE_PERCENT, f"{digits}%")
+            tail_label += " " * (3 - len(str(digits)))
+        if _PB_REPLACE in frame_tail:
+            tail_label = tail_label.replace(_PB_REPLACE, f"{i}/{i_max}")
+            tail_label += " " * max(0, len(str(i_max)) - len(str(i)))
     progress_width = floor(min(1.0, value) * width)
     progress = (chars * width)[:progress_width]
     if head is not None:
@@ -228,9 +278,44 @@ def progress_bar(
         progress = progress[:-1] + head
     background = (chars2 * width)[progress_width:width]
     body = f"{hl(progress)}{hl2(background)}"
-    body = frame_bar.replace(PROGRESS_BAR_REPLACE, body)
-    return f"\033[A{body}{tail_label}"
+    body = frame_bar.replace(_PB_REPLACE, body)
+    return f"{body}{tail_label}"
 
+T = TypeVar("T")
+class ProgressBarIter:
+    def __init__(self, progress_bar: Callable[[int, int], None]):
+        self.progress_bar = progress_bar
+        self.iterating = False
+        self.pb = ""
+
+    def __call__(self, iter: Iterable[T]):
+        self.iterating = True
+        i_max = len(iter)
+        print("\n" + self.progress_bar(0, i_max) + "\033[F")
+        for i, element in enumerate(iter):
+            self.iterating = True
+            self.pb = self.progress_bar(i, i_max)
+            print(self.pb + "\033[F")
+            yield element
+        print("\033[K\033[F" + self.progress_bar(i_max, i_max) + "\n\033[K\033[F")
+        self.iterating = False
+
+    def print(self, *args, **kwargs) -> None:
+        text = "\033[K\033[F\033[K"
+        text += kwargs.get("sep", " ").join(map(str, args)) + "\n" + self.pb + "\033[F\n"
+        print(text, **kwargs)
+
+# pbi = ProgressBarIter(lambda a, b: progress_bar(a, b, 20))
+# print("HELLo")
+# for i in pbi(range(3)):
+#     a = 123
+#     pbi.print(i, "HELLO")
+#     pbi.print(i, "WORLD")
+# print("WORLD")
+
+
+
+# exit()
 
 
 _d, _n, _l = 90, 180, 255
@@ -374,3 +459,8 @@ def hex2rgb(code: str) -> RGB:
     code = code.removeprefix("#")
     assert len(code) == 6, "TODO"
     return (int(code[0:2], 16), int(code[2:4], 16), int(code[4:6], 16))
+
+def q(text: str, qm = "\"", colors: list[ColorFun] = [], colors_text: list[ColorFun] = []) -> str:
+    hl = compose(colors)
+    hl_text = compose(colors_text)
+    return hl(qm + hl_text(text) + hl(qm))
