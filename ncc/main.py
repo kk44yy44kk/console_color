@@ -1,6 +1,5 @@
-from typing import Callable, Any, Generator, TypeVar, Iterable
+from typing import Callable, Any, TypeVar, Iterable
 from math import floor
-from time import sleep
 
 ColorFun = Callable[[str], str]
 """It also has a `escape = True` keyword only argument"""
@@ -231,7 +230,7 @@ def uncolor(text: str) -> str:
 
 _PB_REPLACE = "$$"
 _PB_REPLACE_PERCENT = "$%"
-def progress_bar(
+def bar(
         i: int, i_max: int, width: int, *,
         colors: list[ColorFun] = [green], colors2: list[ColorFun] = [white],
         chars = "=", chars2 = "-",
@@ -282,10 +281,9 @@ def progress_bar(
     return f"{body}{tail_label}"
 
 T = TypeVar("T")
-class ProgressBarIter:
+class ProgressBar:
     def __init__(self, progress_bar: Callable[[int, int], None]):
         self.progress_bar = progress_bar
-        self.iterating = False
         self.pb = ""
 
     def __call__(self, iter: Iterable[T]):
@@ -293,30 +291,15 @@ class ProgressBarIter:
         i_max = len(iter)
         print("\n" + self.progress_bar(0, i_max) + "\033[F")
         for i, element in enumerate(iter):
-            self.iterating = True
             self.pb = self.progress_bar(i, i_max)
             print(self.pb + "\033[F")
             yield element
         print("\033[K\033[F" + self.progress_bar(i_max, i_max) + "\n\033[K\033[F")
-        self.iterating = False
 
     def print(self, *args, **kwargs) -> None:
         text = "\033[K\033[F\033[K"
         text += kwargs.get("sep", " ").join(map(str, args)) + "\n" + self.pb + "\033[F\n"
         print(text, **kwargs)
-
-# pbi = ProgressBarIter(lambda a, b: progress_bar(a, b, 20))
-# print("HELLo")
-# for i in pbi(range(3)):
-#     a = 123
-#     pbi.print(i, "HELLO")
-#     pbi.print(i, "WORLD")
-# print("WORLD")
-
-
-
-# exit()
-
 
 _d, _n, _l = 90, 180, 255
 approx_colors: tuple[RGB, ColorFun, ColorFun] = [

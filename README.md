@@ -1,4 +1,6 @@
 # ncc - Nice Console Colors
+This showcase is outdated and will be updated in the future.
+
 Is a very simple Python module for changing text color with ANSI escape codes.
 It offers a minimalistic and customisable functional approach to coloring and highlighting text inside of the terminal. Ncolorc also provides a simple way to make progress bars.
 
@@ -74,7 +76,7 @@ print()
 print(progress_bar(0.33, len(message), chars=message, chars2=message, frame_percentage=None, frame_bar="$$"))
 print()
 # You can also add a on_complete message
-print(progress_bar(3.0, len(message), chars=message, chars2=message, on_complete="Done!", frame_bar="$$"))
+print(progress_bar(1.0, len(message), chars=message, chars2=message, on_complete="Done!", frame_bar="$$"))
 ```
 
 ## 4. Gradients
