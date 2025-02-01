@@ -1,5 +1,10 @@
 from typing import Callable, Any, TypeVar, Iterable
 from math import floor
+from os import system
+
+# Fix for windows consoles not rendering the text
+system("")
+print(end="")
 
 ColorFun = Callable[[str], str]
 """It also has a `escape = True` keyword only argument"""
@@ -147,8 +152,6 @@ def color(*args: any | ColorFun, escape = True, sep = " ") -> str:
         ret += reset()
     return ret.removesuffix(" ")
 
-
-
 def highlight(text: str, sub: str, *, colors: list[ColorFun], colors2: list[ColorFun] = []) -> str:
     """
     Highlights every occurence of `sub` in `text` using `colors`. Unhighlighted parts get colored with `colors2`
@@ -226,7 +229,6 @@ def uncolor(text: str) -> str:
             break
 
     return ret + text[stop_old:]
-
 
 _PB_REPLACE = "$$"
 _PB_REPLACE_PERCENT = "$%"
