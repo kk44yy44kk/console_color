@@ -1,4 +1,4 @@
-from .main import \
+from .ncc import \
     ColorFun, compose, \
     reset, bold, italic, underline, hide, \
     default, black, red, green, yellow, blue, magenta, cyan, white, gray, b_red, b_green, b_yellow, b_blue, b_magenta, b_cyan, b_white, \
